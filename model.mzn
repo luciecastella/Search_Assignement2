@@ -49,19 +49,20 @@ constraint  forall(k in NRes)
   (sum(i in Act)(arreq [k, i ]) <= rcap[k]);
 
 % Pairwise non-overlapping constraints
-predicate post_noc_disj(int: i, int:  j ) = (start [ i ] + adur [ i ]<=start[j] \/ start [ j ] + adur [ j ]<= start [ i ]);
+predicate post_noc_disj(int: i, int:  j ) = (start [i] + adur [i] <= start[j] \/ start [j] + adur [j] <= start [i]);
 
-predicate post_noc_mode(int: i, int: j)=
-  forall(mi in mode[i], mj in mode [ j ] where  exists (k in RRes)(mrreq [k,mi] + mrreq [k,mj]>rcap [k]) )
-    ( (mrun[mi] /\ mrun [ mj ] ) -> (start[i] + mdur[mi]<= start [j] \/ start [j] + mdur[mj]<= start [ i ]) );
+predicate post_noc_mode(int: i, int: j) =
+  forall(mi in mode[i], mj in mode [ j ] where  exists (k in RRes)(mrreq [k,mi] + mrreq [k,mj] > rcap [k]) )
+    ( (mrun[mi] /\ mrun [ mj ] ) -> (start[i] + mdur[mi]<= start [j] \/ start [j] + mdur[mj]<= start [i]) );
     
-predicate post_noc_rres(int:i,int:j)=
+predicate post_noc_rres(int:i,int:j) =
   forall(k in RRes) 
-    ( (arreq [ k , i ] +arreq [k, j ]>rcap [k]) -> ( start [ i ] + adur [ i ]<= start [j] \/ start[j]+adur [ j ]<=start[i]) );
+    ( (arreq [ k , i ] +arreq [k, j ]>rcap [k]) -> ( start [i] + adur [i]<= start [j] \/ start[j]+adur [j]<=start[i]) );
 
 % Objective constraints
-constraint makespan = max(i in Act where succ [i] = {})(start [ i ] + adur [ i ]) ;
-constraint forall(i in Act where succ [i]={})(start [i] + adur [ i ] <= makespan);
+constraint makespan = max(i in Act where succ [i] = {})(start [i] + adur [i]);
+
+constraint forall(i in Act where succ [i]={})(start [i] + adur [i] <= makespan);
 
 
 
