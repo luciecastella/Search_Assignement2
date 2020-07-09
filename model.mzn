@@ -12,41 +12,39 @@ set of int: RRes = {r|r in Res where rtype [r] = 1}; % Renewable resources
 set of int: NRes = {r|r in Res where rtype [r] = 2}; % Non-renewable resources
 
 array[Mod] of int: mdur; % Duration  of modes
-array[Res, Mod] of int: mrreq ; % Resource requirements  of modes
+array[Res, Mod] of int: mrreq ; % Resource requirements of modes
 array[Res] of int: rcap; % Resource  capacity
+array[Mod] of var bool: mrun; % Whether a mode is executed or not
 
 
-% Variables
-array[Mod] of var bool: mrun;
+int: MAX = sum(a in Act)( max([ mdur[m] | m in mode[a] ]) ); % Initial upper bound
 
-int: MAX = sum(a in Act)(max([mdur[m] | m in mode[a]]));
-
-array[Act] of var 0..MAX: start;
-array[Act] of var int: adur = [let {var {mdur [m]|m in mode [i]}:x} in x|i in Act];
-array[Res, Act] of var int: arreq = array2d(Res, Act, [let {var {mrreq [k,m]|m in mode [i]}: x} in x|k in Res, i in Act]);
-var 0..MAX: makespan;
+array[Act] of var 0..MAX: start; % Start time activities
+array[Act] of var int: adur = [let {var {mdur [m]|m in mode [i]} : x} in x | i in Act]; % Duration of activities
+array[Res, Act] of var int: arreq = array2d(Res, Act, [let {var {mrreq [r,m] | m in mode [a]}: x} in x | r in Res, a in Act]); % Resource requirements of activities
+var 0..MAX: makespan; % Objective variable
 
 % Activities and mode constraints
 constraint  forall(a in Act)
-  (adur [a] = sum(m in mode [a]) (mdur [m] * mrun [m]) );
+  ( adur[a] = sum(m in mode[a]) (mdur[m] * mrun[m]) );
   
 constraint  forall(a in Act, r in Res)
-  (arreq [r, a] = sum(m in mode[a]) (mrreq [r,m] * mrun[m]) );
+  ( arreq [r, a] = sum(m in mode[a]) (mrreq[r,m] * mrun[m]) );
   
 constraint  forall(a in Act)
-  (sum(m in mode[a]) (mrun[m]) = 1) ;
+  ( sum(m in mode[a]) (mrun[m]) = 1 );
   
 % Precedence constraints  
-constraint  forall(a in Act,  s in succ [a]) 
-  (start [a] + adur [a] <= start[s]) ;
+constraint  forall(a in Act, s in succ[a]) 
+  ( start [a] + adur [a] <= start[s] );
 
 % Renewable resource constraints
 constraint  forall(r in RRes) 
-  (cumulative(start, adur, [arreq[r,a] | a in Act], rcap[r]));
+  ( cumulative(start, adur, [arreq[r,a] | a in Act], rcap[r]) );
 
 % Non-renewable resource constraints
 constraint  forall(r in NRes) 
-  (sum(a in Act) (arreq [r, a]) <= rcap[r]);
+  ( sum(a in Act) (arreq [r, a]) <= rcap[r] );
 
 % Pairwise non-overlapping constraints
 predicate post_noc_disj(int: i, int:  j) = (start [i] + adur [i] <= start[j] \/ start [j] + adur [j] <= start [i]);
@@ -62,7 +60,8 @@ predicate post_noc_rres(int: i, int: j) =
 % Objective constraints
 constraint makespan = max(i in Act where succ [i] = {})(start [i] + adur [i]);
 
-constraint forall(i in Act where succ [i]={})(start [i] + adur [i] <= makespan);
+constraint forall(i in Act where succ [i]={})
+  (start [i] + adur [i] <= makespan);
 
 
 
