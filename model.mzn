@@ -29,29 +29,29 @@ constraint  forall(a in Act)
   ( adur[a] = sum(m in mode[a]) (mdur[m] * mrun[m]) );
   
 constraint  forall(a in Act, r in Res)
-  ( arreq [r, a] = sum(m in mode[a]) (mrreq[r,m] * mrun[m]) );
+  ( arreq[r, a] = sum(m in mode[a]) (mrreq[r,m] * mrun[m]) );
   
 constraint  forall(a in Act)
   ( sum(m in mode[a]) (mrun[m]) = 1 );
   
 % Precedence constraints  
 constraint  forall(a in Act, s in succ[a]) 
-  ( start [a] + adur [a] <= start[s] );
+  ( start[a] + adur[a] <= start[s] );
 
 % Renewable resource constraints
 constraint  forall(r in RRes) 
   ( cumulative(start, adur, [arreq[r,a] | a in Act], rcap[r]) );
 
 % Non-renewable resource constraints
-constraint  forall(r in NRes) 
-  ( sum(a in Act) (arreq [r, a]) <= rcap[r] );
+constraint  forall(n in NRes) 
+  ( sum(a in Act) (arreq [n, a]) <= rcap[n] );
 
 % Pairwise non-overlapping constraints
 predicate post_noc_disj(int: i, int:  j) = (start [i] + adur [i] <= start[j] \/ start [j] + adur [j] <= start [i]);
 
 predicate post_noc_mode(int: i, int: j) =
-  forall(mi in mode[i], mj in mode [ j ] where  exists (k in RRes)(mrreq [k,mi] + mrreq [k,mj] > rcap [k]) )
-    ( (mrun[mi] /\ mrun [ mj ] ) -> (start[i] + mdur[mi]<= start [j] \/ start [j] + mdur[mj] <= start [i]) );
+  forall(mi in mode[i], mj in mode [j] where  exists (k in RRes)(mrreq [k, mi] + mrreq [k, mj] > rcap [k]) )
+    ( (mrun[mi] /\ mrun [mj] ) -> (start[i] + mdur[mi]<= start [j] \/ start [j] + mdur[mj] <= start [i]) );
     
 predicate post_noc_rres(int: i, int: j) =
   forall(k in RRes) 
